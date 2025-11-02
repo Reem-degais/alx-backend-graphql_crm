@@ -1,0 +1,8 @@
+graphene-django
+django-filter
+django
+django-cors-headers
+django-rest-framework
+django-rest-framework-simplejwt
+django-rest-framework-simplejwt-blacklist
+django-crontab
