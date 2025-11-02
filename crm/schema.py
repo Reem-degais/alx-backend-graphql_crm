@@ -235,6 +235,29 @@ class Query(graphene.ObjectType):
             qs = qs.order_by(order_by)
         return qs
     
+class UpdateLowStockProducts(graphene.Mutation):
+    """
+    A mutation to update products with low stock.
+    """
+    updated_products = graphene.List(ProductType)
+    message = graphene.String()
+
+    @staticmethod
+    def mutate(root, info):
+        # Find all products with stock less than 10
+        low_stock_products = Product.objects.filter(stock__lt=10)
+        
+        updated_products_list = []
+        for product in low_stock_products:
+            # Increment stock by 10
+            product.stock += 10
+            product.save()
+            updated_products_list.append(product)
+            
+        message = f"Successfully updated stock for {len(updated_products_list)} products."
+        
+        return UpdateLowStockProducts(updated_products=updated_products_list, message=message)
+
 class Mutation(graphene.ObjectType):
     create_customer = CreateCustomer.Field()
     bulk_create_customers = BulkCreateCustomers.Field()
