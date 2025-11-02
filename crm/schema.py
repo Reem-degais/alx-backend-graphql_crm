@@ -3,9 +3,10 @@ import re
 from graphene_django import DjangoObjectType
 from .models import Customer, Product, Order
 from django.utils import timezone
+from graphene_django.filter import DjangoFilterConnectionField
+from .filters import CustomerFilter, ProductFilter, OrderFilter
 
-class Query(graphene.ObjectType):
-    hello = graphene.String(default_value="Hello, GraphQL!")
+
 
 class CustomerType(DjangoObjectType):
     """
@@ -13,7 +14,10 @@ class CustomerType(DjangoObjectType):
     """
     class Meta:
         model = Customer
-        fields = ("id", "name", "email", "phone")
+        fields = "__all__"
+        interfaces = (graphene.relay.Node,)
+        filterset_class = CustomerFilter
+        
 
 class ProductType(DjangoObjectType):
     """
@@ -22,7 +26,10 @@ class ProductType(DjangoObjectType):
 
     class Meta:
         model = Product
-        fields = ("id", "name", "price", "stock")
+        fields = "__all__"
+        interfaces = (graphene.relay.Node,)
+        filterset_class = ProductFilter
+        
 
 class OrderType(DjangoObjectType):
     """
@@ -31,7 +38,10 @@ class OrderType(DjangoObjectType):
     
     class Meta:
         model = Order
-        fields = ("id", "customer", "products", "total_amount")
+        fields = "__all__"
+        interfaces = (graphene.relay.Node,)
+        filterset_class = OrderFilter
+        
 
 class CustomerInput(graphene.InputObjectType):
     """
@@ -195,6 +205,35 @@ class CreateOrder(graphene.Mutation):
         order.products.set(products)
 
         return CreateOrder(order=order, success=True, error=None)
+    
+class Query(graphene.ObjectType):
+    hello = graphene.String(default_value="Hello, GraphQL!")
+
+    # Filtered queries
+    all_customers = DjangoFilterConnectionField(CustomerType)
+    all_products = DjangoFilterConnectionField(ProductType)
+    all_orders = DjangoFilterConnectionField(OrderType)
+
+    def resolve_all_customers(root, info, **kwargs):
+        qs = Customer.objects.all()
+        order_by = kwargs.get("order_by")
+        if order_by:
+            qs = qs.order_by(order_by)
+        return qs
+
+    def resolve_all_products(root, info, **kwargs):
+        qs = Product.objects.all()
+        order_by = kwargs.get("order_by")
+        if order_by:
+            qs = qs.order_by(order_by)
+        return qs
+
+    def resolve_all_orders(root, info, **kwargs):
+        qs = Order.objects.all()
+        order_by = kwargs.get("order_by")
+        if order_by:
+            qs = qs.order_by(order_by)
+        return qs
     
 class Mutation(graphene.ObjectType):
     create_customer = CreateCustomer.Field()
