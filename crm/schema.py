@@ -5,7 +5,7 @@ from .models import Customer, Product, Order
 from django.utils import timezone
 from graphene_django.filter import DjangoFilterConnectionField
 from .filters import CustomerFilter, ProductFilter, OrderFilter
-
+from crm.models import Product
 
 
 class CustomerType(DjangoObjectType):
